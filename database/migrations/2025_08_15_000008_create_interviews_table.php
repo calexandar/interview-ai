@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('type')->default('technical');
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
-            $table->foreignId('current_question_id')->nullable()->constrained('interview_questions')->nullOnDelete();
+            $table->unsignedBigInteger('current_question_id')->nullable();
             $table->integer('question_index')->default(0);
             $table->integer('total_questions')->default(10);
             $table->json('metadata')->nullable();
