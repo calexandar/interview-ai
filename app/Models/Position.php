@@ -45,7 +45,7 @@ class Position extends Model
 
     public function skills(): BelongsToMany
     {
-        return $this->belongsToMany(Skill::class)->withPivot('weight', 'required')->withTimestamps();
+        return $this->belongsToMany(Skill::class, 'position_skills')->withPivot('weight', 'required')->withTimestamps();
     }
 
     public function interviews(): HasMany
