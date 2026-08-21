@@ -16,6 +16,8 @@ type Props = {
     label?: string;
     loadingLabel?: string;
     separator?: string;
+    buttonClass?: string;
+    hideSeparator?: boolean;
 };
 
 const props = defineProps<Props>();
@@ -42,6 +44,7 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
                 type="button"
                 variant="outline"
                 class="w-full"
+                :class="props.buttonClass"
                 @click="verify"
                 :disabled="isLoading"
             >
@@ -59,7 +62,7 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
             </div>
         </div>
 
-        <div class="relative my-6">
+        <div v-if="!props.hideSeparator" class="relative my-6">
             <div class="absolute inset-0 flex items-center">
                 <Separator class="w-full" />
             </div>

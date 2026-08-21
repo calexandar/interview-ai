@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { Building2, Lock, Mail, Phone, User } from '@lucide/vue';
-import AuthInput from '@/components/Auth/AuthInput.vue';
 import AuthDivider from '@/components/Auth/AuthDivider.vue';
+import AuthInput from '@/components/Auth/AuthInput.vue';
 import SocialAuthButton from '@/components/Auth/SocialAuthButton.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';

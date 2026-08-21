@@ -1,8 +1,9 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
-import AuthLayout from '@/layouts/AuthLayout.vue';
 import AuthRegisterLayout from '@/layouts/auth/AuthRegisterLayout.vue';
+import AuthSplitLayout from '@/layouts/auth/AuthSplitLayout.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 
@@ -16,6 +17,8 @@ createInertiaApp({
                 return null;
             case name === 'auth/Register':
                 return AuthRegisterLayout;
+            case name === 'auth/Login':
+                return AuthSplitLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):

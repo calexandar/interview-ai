@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Sparkles } from '@lucide/vue';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from '@lucide/vue';
 
 interface Props {
     recommendation: string;

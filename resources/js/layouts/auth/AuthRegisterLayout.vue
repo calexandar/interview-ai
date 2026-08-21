@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import BrandName from '@/components/Brand/BrandName.vue';
-import FeatureItem from '@/components/Marketing/FeatureItem.vue';
-import DashboardPreview from '@/components/Marketing/DashboardPreview.vue';
-import { home } from '@/routes';
 import { BarChart3, ShieldCheck, Users } from '@lucide/vue';
+import BrandName from '@/components/Brand/BrandName.vue';
+import DashboardPreview from '@/components/Marketing/DashboardPreview.vue';
+import FeatureItem from '@/components/Marketing/FeatureItem.vue';
+import { home } from '@/routes';
 </script>
 
 <template>

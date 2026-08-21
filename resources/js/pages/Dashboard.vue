@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
-import { dashboard } from '@/routes';
-import { Button } from '@/components/ui/button';
 import { Briefcase, Users, MessageSquare, Award, Plus } from '@lucide/vue';
-import StatCard from '@/components/Dashboard/StatCard.vue';
+import { computed } from 'vue';
 import RecentInterviewsTable from '@/components/Dashboard/RecentInterviewsTable.vue';
+import StatCard from '@/components/Dashboard/StatCard.vue';
+import { Button } from '@/components/ui/button';
+import { dashboard } from '@/routes';
 import type { DashboardInterview } from '@/types/dashboard';
 
 interface Props {
@@ -32,8 +32,15 @@ defineOptions({
 
 const greeting = computed(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
+
+    if (hour < 12) {
+return 'Good morning';
+}
+
+    if (hour < 18) {
+return 'Good afternoon';
+}
+
     return 'Good evening';
 });
 

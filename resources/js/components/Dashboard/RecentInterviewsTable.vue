@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import InterviewStatusBadge from '@/components/Status/InterviewStatusBadge.vue';
 import RecommendationBadge from '@/components/Status/RecommendationBadge.vue';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInitials } from '@/composables/useInitials';
 
 interface Interview {
@@ -28,9 +28,17 @@ function formatDate(dateString: string): string {
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays === 0) {
+return 'Today';
+}
+
+    if (diffDays === 1) {
+return 'Yesterday';
+}
+
+    if (diffDays < 7) {
+return `${diffDays} days ago`;
+}
 
     return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -39,7 +47,10 @@ function formatDate(dateString: string): string {
 }
 
 function formatScore(score: number | null): string {
-    if (score === null) return '—';
+    if (score === null) {
+return '—';
+}
+
     return `${score.toFixed(1)} / 10`;
 }
 </script>

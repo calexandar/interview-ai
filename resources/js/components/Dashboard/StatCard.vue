@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue';
-import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from '@lucide/vue';
+import { computed  } from 'vue';
+import type {Component} from 'vue';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Props {
     icon: Component;
