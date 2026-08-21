@@ -53,7 +53,7 @@ defineExpose({
                 :autocomplete="autocomplete"
                 :passwordrules="passwordrules"
                 :class="cn(
-                    'h-12 rounded-xl border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/10',
+                    'h-12 rounded-xl border-gray-200 bg-white dark:bg-white text-sm placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/10',
                     icon ? 'pl-10' : 'pl-3',
                     'pr-10',
                     error && 'border-red-500 focus:border-red-500 focus:ring-red-500/10',

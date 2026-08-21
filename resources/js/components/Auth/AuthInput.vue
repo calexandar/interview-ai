@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<{
                 :required="required"
                 :tabindex="tabindex"
                 :class="cn(
-                    'h-12 rounded-xl border-gray-200 bg-white pl-10 text-sm placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/10',
+                    'h-12 rounded-xl border-gray-200 bg-white dark:bg-white pl-10 text-sm placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/10',
                     error && 'border-red-500 focus:border-red-500 focus:ring-red-500/10',
                     props.class,
                 )"
