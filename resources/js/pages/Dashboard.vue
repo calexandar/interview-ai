@@ -6,13 +6,17 @@ import RecentInterviewsTable from '@/components/Dashboard/RecentInterviewsTable.
 import StatCard from '@/components/Dashboard/StatCard.vue';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
-import type { DashboardInterview } from '@/types/dashboard';
+import type { DashboardInterview, DashboardTrend } from '@/types/dashboard';
 
 interface Props {
     activePositionsCount: number;
     candidatesCount: number;
     interviewsCount: number;
     strongCandidatesCount: number;
+    activePositionsTrend: DashboardTrend | null;
+    candidatesTrend: DashboardTrend | null;
+    interviewsTrend: DashboardTrend | null;
+    strongCandidatesTrend: DashboardTrend | null;
     recentInterviews: DashboardInterview[];
     userName: string;
 }
@@ -73,24 +77,28 @@ const firstName = computed(() => props.userName.split(' ')[0]);
                 :icon="Briefcase"
                 label="Active Positions"
                 :value="activePositionsCount"
+                :trend="activePositionsTrend"
                 color="primary"
             />
             <StatCard
                 :icon="Users"
                 label="Candidates"
                 :value="candidatesCount"
+                :trend="candidatesTrend"
                 color="primary"
             />
             <StatCard
                 :icon="MessageSquare"
                 label="Interviews"
                 :value="interviewsCount"
+                :trend="interviewsTrend"
                 color="primary"
             />
             <StatCard
                 :icon="Award"
                 label="Strong Candidates"
                 :value="strongCandidatesCount"
+                :trend="strongCandidatesTrend"
                 color="success"
             />
         </div>

@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Positions\CreatePosition;
 
-use App\Positions\CreatePosition\CreatePositionHandler;
-use App\Positions\CreatePosition\CreatePositionRequest;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class PositionController extends Controller

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { MessageSquare } from '@lucide/vue';
 import InterviewStatusBadge from '@/components/Status/InterviewStatusBadge.vue';
 import RecommendationBadge from '@/components/Status/RecommendationBadge.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useInitials } from '@/composables/useInitials';
 
 interface Interview {
@@ -69,11 +71,13 @@ return '—';
             </Link>
         </CardHeader>
         <CardContent class="p-0">
-            <div v-if="interviews.length === 0" class="px-6 pb-6 text-center">
-                <p class="text-sm text-muted-foreground">
-                    No interviews yet. Start your first candidate interview to see results here.
-                </p>
-            </div>
+            <EmptyState
+                v-if="interviews.length === 0"
+                class="m-6"
+                :icon="MessageSquare"
+                title="No interviews yet"
+                description="Start your first candidate interview to see results here."
+            />
             <table v-else class="w-full">
                 <thead>
                     <tr class="border-b border-border">

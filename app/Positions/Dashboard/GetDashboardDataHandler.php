@@ -41,7 +41,48 @@ class GetDashboardDataHandler
             'candidatesCount' => $candidatesCount,
             'interviewsCount' => $interviewsCount,
             'strongCandidatesCount' => $strongCandidatesCount,
+            'activePositionsTrend' => $this->monthlyTrend(
+                Position::where('organization_id', $orgId)
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->count(),
+            ),
+            'candidatesTrend' => $this->monthlyTrend(
+                Candidate::where('organization_id', $orgId)
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->count(),
+            ),
+            'interviewsTrend' => $this->monthlyTrend(
+                Interview::where('organization_id', $orgId)
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->count(),
+            ),
+            'strongCandidatesTrend' => $this->monthlyTrend(
+                Assessment::whereHas('interview', function ($query) use ($orgId) {
+                    $query->where('organization_id', $orgId);
+                })
+                    ->whereIn('recommendation', [
+                        AssessmentRecommendation::StrongHire->value,
+                        AssessmentRecommendation::Hire->value,
+                    ])
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->count()
+            ),
             'recentInterviews' => $recentInterviews,
+        ];
+    }
+
+    /**
+     * @return array{value: int, direction: string}|null
+     */
+    private function monthlyTrend(int $count): ?array
+    {
+        if ($count === 0) {
+            return null;
+        }
+
+        return [
+            'value' => $count,
+            'direction' => 'up',
         ];
     }
 

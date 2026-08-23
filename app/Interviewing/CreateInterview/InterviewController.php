@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Interviewing\CreateInterview;
 
-use App\Interviewing\CreateInterview\CreateInterviewHandler;
-use App\Interviewing\CreateInterview\CreateInterviewRequest;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class InterviewController extends Controller

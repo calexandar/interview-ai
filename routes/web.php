@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\CandidateController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\InterviewController;
-use App\Http\Controllers\PositionController;
+use App\Candidates\CreateCandidate\CandidateController;
+use App\Interviewing\CreateInterview\InterviewController;
+use App\Positions\CreatePosition\PositionController;
+use App\Positions\Dashboard\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');

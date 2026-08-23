@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Positions\Dashboard;
 
-use App\Positions\Dashboard\GetDashboardData;
-use App\Positions\Dashboard\GetDashboardDataHandler;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,6 +24,10 @@ class DashboardController extends Controller
             'candidatesCount' => $data['candidatesCount'],
             'interviewsCount' => $data['interviewsCount'],
             'strongCandidatesCount' => $data['strongCandidatesCount'],
+            'activePositionsTrend' => $data['activePositionsTrend'],
+            'candidatesTrend' => $data['candidatesTrend'],
+            'interviewsTrend' => $data['interviewsTrend'],
+            'strongCandidatesTrend' => $data['strongCandidatesTrend'],
             'recentInterviews' => $data['recentInterviews'],
             'userName' => $request->user()->name,
         ]);

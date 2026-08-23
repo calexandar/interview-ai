@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Candidates\CreateCandidate;
 
-use App\Candidates\CreateCandidate\CreateCandidateHandler;
-use App\Candidates\CreateCandidate\CreateCandidateRequest;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class CandidateController extends Controller
