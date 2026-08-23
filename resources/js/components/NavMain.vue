@@ -24,13 +24,25 @@ const { isCurrentUrl } = useCurrentUrl();
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
                     as-child
-                    :is-active="isCurrentUrl(item.href)"
+                    :is-active="!item.disabled && isCurrentUrl(item.href)"
                     :tooltip="item.title"
+                    :aria-disabled="item.disabled || undefined"
+                    :disabled="item.disabled"
                 >
-                    <Link :href="item.href">
+                    <Link
+                        v-if="!item.disabled"
+                        :href="item.href"
+                    >
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>
                     </Link>
+                    <span
+                        v-else
+                        class="flex w-full items-center gap-2"
+                    >
+                        <component :is="item.icon" />
+                        <span>{{ item.title }}</span>
+                    </span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

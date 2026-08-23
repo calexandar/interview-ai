@@ -1,5 +1,6 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { initializeTheme } from '@/composables/useAppearance';
+import AppDashboardLayout from '@/layouts/app/AppDashboardLayout.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthRegisterLayout from '@/layouts/auth/AuthRegisterLayout.vue';
 import AuthSplitLayout from '@/layouts/auth/AuthSplitLayout.vue';
@@ -23,6 +24,8 @@ createInertiaApp({
                 return AuthLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
+            case name === 'Dashboard/Index':
+                return AppDashboardLayout;
             default:
                 return AppLayout;
         }
