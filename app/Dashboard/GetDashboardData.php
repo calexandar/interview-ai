@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Positions\Dashboard;
+namespace App\Dashboard;
 
 readonly class GetDashboardData
 {

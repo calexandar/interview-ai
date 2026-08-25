@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Interviewing\Dashboard;
+namespace App\Dashboard;
 
 readonly class GetActiveInterviewDashboard
 {

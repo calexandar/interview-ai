@@ -1,10 +1,8 @@
 <?php
 
-namespace App\Positions\Dashboard;
+namespace App\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Interviewing\Dashboard\GetActiveInterviewDashboard;
-use App\Interviewing\Dashboard\GetActiveInterviewDashboardHandler;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

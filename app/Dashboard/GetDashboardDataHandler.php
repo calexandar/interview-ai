@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Positions\Dashboard;
+namespace App\Dashboard;
 
 use App\Models\Assessment;
 use App\Models\Candidate;

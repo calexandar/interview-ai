@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Interviewing\Dashboard;
+namespace App\Dashboard;
 
 use App\Models\Assessment;
 use App\Models\Interview;
