@@ -221,8 +221,8 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param Collection<int, Skill> $skills
-     * @param Collection<int, Question> $questions
+     * @param  Collection<int, Skill>  $skills
+     * @param  Collection<int, Question>  $questions
      */
     private function createCompletedInterviews(
         Organization $organization,
@@ -282,7 +282,7 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param Collection<int, Question> $questions
+     * @param  Collection<int, Question>  $questions
      */
     private function createCompletedInterview(
         Organization $organization,
@@ -388,8 +388,8 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param Collection<int, Skill> $skills
-     * @param Collection<int, Question> $questions
+     * @param  Collection<int, Skill>  $skills
+     * @param  Collection<int, Question>  $questions
      */
     private function createInProgressInterview(
         Organization $organization,
@@ -429,7 +429,7 @@ class DemoSeeder extends Seeder
                 'skill_id' => $question->skill_id,
                 'difficulty' => $question->difficulty,
                 'question_text' => $question->question,
-                'status' => $isAnswered ? QuestionStatus::Answered : QuestionStatus::Asked,
+                'status' => $isAnswered ? QuestionStatus::Answered : QuestionStatus::Asking,
                 'asked_at' => (clone $startedAt)->addMinutes($index * 5),
                 'answered_at' => $isAnswered ? (clone $startedAt)->addMinutes($index * 5 + 3) : null,
             ]);
@@ -467,7 +467,7 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param Collection<int, Skill> $skills
+     * @param  Collection<int, Skill>  $skills
      */
     private function createScheduledInterviews(
         Organization $organization,
@@ -581,7 +581,7 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param Collection<int, Skill> $positionSkills
+     * @param  Collection<int, Skill>  $positionSkills
      * @return SupportCollection<int, array{score: float, confidence: float, count: int}>
      */
     private function calculateSkillScores(Interview $interview, Collection $positionSkills): SupportCollection

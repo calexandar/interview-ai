@@ -121,8 +121,11 @@ class GetActiveInterviewDashboardHandler
         return [
             'text' => $interviewQuestion->question->question,
             'state' => match ($interviewQuestion->status) {
-                QuestionStatus::Asked => 'listening',
+                QuestionStatus::Asking => 'listening',
+                QuestionStatus::Answering => 'listening',
+                QuestionStatus::Processing => 'processing',
                 QuestionStatus::Answered => 'answered',
+                QuestionStatus::Skipped => 'answered',
                 QuestionStatus::Pending => 'pending',
             },
         ];

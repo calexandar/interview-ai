@@ -30,11 +30,27 @@ class InterviewFactory extends Factory
         ];
     }
 
+    public function draft(): static
+    {
+        return $this->state(fn () => [
+            'status' => InterviewStatus::Draft,
+        ]);
+    }
+
     public function inProgress(): static
     {
         return $this->state(fn () => [
             'status' => InterviewStatus::InProgress,
             'started_at' => now(),
+        ]);
+    }
+
+    public function paused(): static
+    {
+        return $this->state(fn () => [
+            'status' => InterviewStatus::Paused,
+            'started_at' => now()->subMinutes(30),
+            'paused_at' => now(),
         ]);
     }
 
@@ -44,6 +60,14 @@ class InterviewFactory extends Factory
             'status' => InterviewStatus::Completed,
             'started_at' => now()->subHour(),
             'completed_at' => now(),
+        ]);
+    }
+
+    public function expired(): static
+    {
+        return $this->state(fn () => [
+            'status' => InterviewStatus::Expired,
+            'started_at' => now()->subHours(2),
         ]);
     }
 }

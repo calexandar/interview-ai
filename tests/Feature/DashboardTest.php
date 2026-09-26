@@ -108,10 +108,10 @@ it('builds progress sections from interview questions grouped by skill', functio
         'status' => QuestionStatus::Answered,
     ]);
 
-    InterviewQuestion::factory()->asked()->create([
+    InterviewQuestion::factory()->asking()->create([
         'interview_id' => $interview->id,
         'skill_id' => $skill->id,
-        'status' => QuestionStatus::Asked,
+        'status' => QuestionStatus::Asking,
     ]);
 
     $this->actingAs($user)

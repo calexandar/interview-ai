@@ -30,10 +30,10 @@ class InterviewQuestionFactory extends Factory
         ];
     }
 
-    public function asked(): static
+    public function asking(): static
     {
         return $this->state(fn () => [
-            'status' => QuestionStatus::Asked,
+            'status' => QuestionStatus::Asking,
             'asked_at' => now(),
         ]);
     }
@@ -44,6 +44,14 @@ class InterviewQuestionFactory extends Factory
             'status' => QuestionStatus::Answered,
             'asked_at' => now()->subMinutes(5),
             'answered_at' => now(),
+        ]);
+    }
+
+    public function skipped(): static
+    {
+        return $this->state(fn () => [
+            'status' => QuestionStatus::Skipped,
+            'asked_at' => now()->subMinutes(2),
         ]);
     }
 }

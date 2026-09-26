@@ -17,7 +17,7 @@ class EndInterviewHandler
                 ->where('organization_id', $command->organizationId)
                 ->first();
 
-            if ($interview === null || ! $interview->isInProgress()) {
+            if ($interview === null || ! $interview->isActive()) {
                 throw $this->notFound();
             }
 

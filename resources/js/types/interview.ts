@@ -1,8 +1,10 @@
 export type InterviewStatus =
+    | 'draft'
     | 'scheduled'
     | 'in_progress'
     | 'paused'
     | 'completed'
+    | 'expired'
     | 'cancelled';
 
 export type AiAgentStatus =
@@ -95,4 +97,47 @@ export interface InterviewSession {
     skills: SkillScore[];
     statistics: InterviewStatistics;
     interviewsOverTime: DailyInterviewCount[];
+}
+
+export interface ConductInterview {
+    id: number;
+    status: InterviewStatus;
+    startedAt: string | null;
+    durationSeconds: number;
+    remainingSeconds: number;
+    questionIndex: number;
+    totalQuestions: number;
+}
+
+export interface ConductCandidate {
+    id: number;
+    name: string;
+}
+
+export interface ConductPosition {
+    id: number;
+    title: string;
+}
+
+export interface ConductQuestion {
+    id: number;
+    text: string;
+    skill: string;
+    difficulty: string;
+    status: string;
+}
+
+export interface ConductProgress {
+    percentage: number;
+    answered: number;
+    total: number;
+    sections: InterviewSection[];
+}
+
+export interface ConductPageProps {
+    interview: ConductInterview;
+    candidate: ConductCandidate;
+    position: ConductPosition;
+    currentQuestion: ConductQuestion | null;
+    progress: ConductProgress;
 }
