@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Shared\Enums\AssessmentRecommendation;
+use Database\Factories\AssessmentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,15 +15,16 @@ use Illuminate\Support\Carbon;
  * @property float $overall_score
  * @property AssessmentRecommendation $recommendation
  * @property float $confidence
- * @property array|null $strengths
- * @property array|null $weaknesses
- * @property array|null $skill_summary
+ * @property list<string>|null $strengths
+ * @property list<string>|null $weaknesses
+ * @property array<string, mixed>|null $skill_summary
  * @property string|null $summary
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 class Assessment extends Model
 {
+    /** @use HasFactory<AssessmentFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -48,6 +50,9 @@ class Assessment extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Interview, $this>
+     */
     public function interview(): BelongsTo
     {
         return $this->belongsTo(Interview::class);

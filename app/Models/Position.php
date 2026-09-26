@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Shared\Concerns\BelongsToOrganization;
 use App\Shared\Enums\PositionLevel;
 use App\Shared\Enums\PositionStatus;
+use Database\Factories\PositionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
  */
 class Position extends Model
 {
+    /** @use HasFactory<PositionFactory> */
     use BelongsToOrganization, HasFactory;
 
     protected $fillable = ['organization_id', 'title', 'description', 'level', 'duration_minutes', 'question_count', 'status'];
@@ -38,21 +40,33 @@ class Position extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Organization, $this>
+     */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
+    /**
+     * @return BelongsToMany<Skill, $this>
+     */
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'position_skills')->withPivot('weight', 'required')->withTimestamps();
     }
 
+    /**
+     * @return HasMany<Interview, $this>
+     */
     public function interviews(): HasMany
     {
         return $this->hasMany(Interview::class);
     }
 
+    /**
+     * @return BelongsToMany<Skill, $this>
+     */
     public function requiredSkills(): BelongsToMany
     {
         return $this->skills()->wherePivot('required', true);

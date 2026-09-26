@@ -22,6 +22,7 @@ class SkillAssessmentFactory extends Factory
             'score' => 0,
             'confidence' => 0,
             'questions_answered' => 0,
+            'evidence' => null,
         ];
     }
 }

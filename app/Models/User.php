@@ -51,6 +51,9 @@ class User extends Authenticatable implements PasskeyUser
         ];
     }
 
+    /**
+     * @return BelongsTo<Organization, $this>
+     */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

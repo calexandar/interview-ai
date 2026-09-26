@@ -11,6 +11,9 @@ use Illuminate\Support\Collection;
 
 class GetDashboardDataHandler
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function handle(GetDashboardData $command): array
     {
         $orgId = $command->organizationId;
@@ -86,6 +89,9 @@ class GetDashboardDataHandler
         ];
     }
 
+    /**
+     * @return Collection<int, array{id: int, candidate_name: string, position_title: string, status: 'cancelled'|'completed'|'draft'|'expired'|'in_progress'|'paused'|'scheduled', score: float|null, recommendation: 'hire'|'mixed'|'no_hire'|'strong_hire'|'strong_no_hire'|null, created_at: string}>
+     */
     private function getRecentInterviews(int $orgId): Collection
     {
         return Interview::where('organization_id', $orgId)

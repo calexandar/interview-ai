@@ -5,8 +5,10 @@ namespace App\Models;
 use App\Shared\Concerns\BelongsToOrganization;
 use App\Shared\Enums\InterviewStatus;
 use App\Shared\Enums\InterviewType;
+use App\Shared\Enums\QuestionSource;
 use App\Shared\Enums\QuestionStatus;
 use Carbon\CarbonImmutable;
+use Database\Factories\InterviewFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $id
  * @property int $organization_id
  * @property int $position_id
+ * @property Position|null $position
  * @property int $candidate_id
  * @property InterviewStatus $status
  * @property InterviewType $type
@@ -26,12 +29,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int|null $current_question_id
  * @property int $question_index
  * @property int $total_questions
- * @property array|null $metadata
+ * @property array<string, mixed>|null $metadata
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
 class Interview extends Model
 {
+    /** @use HasFactory<InterviewFactory> */
     use BelongsToOrganization, HasFactory;
 
     protected $fillable = [
@@ -61,36 +65,57 @@ class Interview extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Organization, $this>
+     */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
+    /**
+     * @return BelongsTo<Position, $this>
+     */
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
     }
 
+    /**
+     * @return BelongsTo<Candidate, $this>
+     */
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
     }
 
+    /**
+     * @return BelongsTo<InterviewQuestion, $this>
+     */
     public function currentQuestion(): BelongsTo
     {
         return $this->belongsTo(InterviewQuestion::class, 'current_question_id');
     }
 
+    /**
+     * @return HasMany<InterviewQuestion, $this>
+     */
     public function interviewQuestions(): HasMany
     {
         return $this->hasMany(InterviewQuestion::class);
     }
 
+    /**
+     * @return HasMany<SkillAssessment, $this>
+     */
     public function skillAssessments(): HasMany
     {
         return $this->hasMany(SkillAssessment::class);
     }
 
+    /**
+     * @return HasOne<Assessment, $this>
+     */
     public function assessment(): HasOne
     {
         return $this->hasOne(Assessment::class);
@@ -138,7 +163,9 @@ class Interview extends Model
 
     public function durationSeconds(): int
     {
-        return ($this->position?->duration_minutes ?? 0) * 60;
+        // position_id is a non-nullable foreign key, so the position always
+        // resolves and duration_minutes always has a value.
+        return $this->position->duration_minutes * 60;
     }
 
     public function remainingSeconds(): int
@@ -178,6 +205,52 @@ class Interview extends Model
             ->where('status', QuestionStatus::Pending)
             ->orderBy('position')
             ->first();
+    }
+
+    /**
+     * The next unused question-bank question for a given skill, used as the
+     * fallback when the AI cannot produce a question. Bank questions that
+     * were never asked stay Pending precisely so they are available here.
+     */
+    public function nextPendingBankQuestionForSkill(int $skillId): ?InterviewQuestion
+    {
+        return $this->interviewQuestions()
+            ->where('status', QuestionStatus::Pending)
+            ->where('source', QuestionSource::QuestionBank)
+            ->where('skill_id', $skillId)
+            ->orderBy('position')
+            ->first();
+    }
+
+    public function nextPendingBankQuestion(): ?InterviewQuestion
+    {
+        return $this->interviewQuestions()
+            ->where('status', QuestionStatus::Pending)
+            ->where('source', QuestionSource::QuestionBank)
+            ->orderBy('position')
+            ->first();
+    }
+
+    /**
+     * How many questions have already been asked for a skill, including the
+     * one currently being asked. Drives skill rotation and difficulty drift.
+     */
+    public function askedCountForSkill(int $skillId): int
+    {
+        return $this->interviewQuestions()
+            ->where('skill_id', $skillId)
+            ->whereIn('status', [
+                QuestionStatus::Asking,
+                QuestionStatus::Answering,
+                QuestionStatus::Processing,
+                QuestionStatus::Answered,
+            ])
+            ->count();
+    }
+
+    public function nextQuestionPosition(): int
+    {
+        return ((int) $this->interviewQuestions()->max('position')) + 1;
     }
 
     public function answeredCount(): int

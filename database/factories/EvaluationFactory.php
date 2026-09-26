@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Answer;
 use App\Models\Evaluation;
+use App\Shared\Enums\EvaluationStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -26,8 +27,13 @@ class EvaluationFactory extends Factory
             'strengths' => null,
             'weaknesses' => null,
             'missing_topics' => null,
+            'evidence' => null,
             'follow_up_required' => false,
             'reasoning_summary' => fake()->sentence(),
+            'status' => EvaluationStatus::Completed,
+            'attempts' => 1,
+            'failure_reason' => null,
+            'failed_at' => null,
         ];
     }
 
@@ -57,6 +63,44 @@ class EvaluationFactory extends Factory
             'weaknesses' => ['Missing key concepts'],
             'missing_topics' => ['advanced topics'],
             'follow_up_required' => true,
+        ]);
+    }
+
+    /**
+     * An evaluation produced by the AI. The AI returns a single overall score
+     * with evidence, not four derived sub-dimension scores, so those columns
+     * are deliberately left null rather than invented.
+     */
+    public function aiEvaluated(): static
+    {
+        return $this->state(fn () => [
+            'technical_accuracy' => null,
+            'depth' => null,
+            'practical_experience' => null,
+            'communication' => null,
+            'strengths' => ['Understands eager loading'],
+            'weaknesses' => ['Did not mention database indexes'],
+            'missing_topics' => ['indexing'],
+            'evidence' => ['Candidate described eager loading as a solution to N+1 queries.'],
+        ]);
+    }
+
+    public function pending(): static
+    {
+        return $this->state(fn () => [
+            'status' => EvaluationStatus::Pending,
+            'attempts' => 0,
+            'failure_reason' => null,
+            'failed_at' => null,
+        ]);
+    }
+
+    public function failed(string $reason = 'provider_unavailable'): static
+    {
+        return $this->state(fn () => [
+            'status' => EvaluationStatus::Failed,
+            'failure_reason' => $reason,
+            'failed_at' => now(),
         ]);
     }
 }

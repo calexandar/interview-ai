@@ -20,6 +20,7 @@ class AnswerFactory extends Factory
             'interview_question_id' => InterviewQuestion::factory(),
             'candidate_id' => Candidate::factory(),
             'content' => fake()->paragraph(),
+            'duration_seconds' => null,
             'submitted_at' => now(),
         ];
     }

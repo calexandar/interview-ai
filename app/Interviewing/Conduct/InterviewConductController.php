@@ -3,9 +3,12 @@
 namespace App\Interviewing\Conduct;
 
 use App\Http\Controllers\Controller;
+use App\Models\Answer;
 use App\Models\Interview;
+use App\Models\InterviewQuestion;
 use App\Shared\Enums\QuestionStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,12 +20,15 @@ class InterviewConductController extends Controller
     ): Response {
         $interviewModel = Interview::where('id', $interview)
             ->where('organization_id', $request->user()->organization_id)
-            ->with(['candidate', 'position.skills', 'interviewQuestions.question.skill', 'interviewQuestions.answer'])
+            ->with(['candidate', 'position', 'interviewQuestions.skill', 'interviewQuestions.answer.evaluation'])
             ->firstOrFail();
 
-        $activeQuestion = $interviewModel->activeQuestion()?->load('question.skill');
+        $activeQuestion = $interviewModel->activeQuestion();
 
-        $sections = $interviewModel->interviewQuestions()
+        // An aggregate, not a model, so it is run through the query builder
+        // rather than the Eloquent relation.
+        $sections = DB::table('interview_questions')
+            ->where('interview_id', $interviewModel->id)
             ->leftJoin('skills', 'skills.id', '=', 'interview_questions.skill_id')
             ->selectRaw("COALESCE(skills.name, 'General') as section_name")
             ->selectRaw('COUNT(*) as total')
@@ -30,7 +36,7 @@ class InterviewConductController extends Controller
             ->groupBy('section_name')
             ->orderBy('section_name')
             ->get()
-            ->map(fn ($row): array => [
+            ->map(fn (object $row): array => [
                 'name' => (string) $row->section_name,
                 'completed' => (int) $row->completed,
                 'total' => (int) $row->total,
@@ -59,10 +65,16 @@ class InterviewConductController extends Controller
             ],
             'currentQuestion' => $activeQuestion ? [
                 'id' => $activeQuestion->id,
+                'answerId' => $this->answerIdFor($activeQuestion),
                 'text' => $activeQuestion->question_text,
-                'skill' => $activeQuestion->question?->skill?->name ?? 'General',
+                // The skill is resolved from the interview question, not from
+                // the question bank, because AI generated questions have no
+                // bank question attached. skill_id is a non-nullable foreign
+                // key, so the skill always resolves.
+                'skill' => $activeQuestion->skill->name,
                 'difficulty' => $activeQuestion->difficulty->value,
                 'status' => $activeQuestion->status->value,
+                'evaluationState' => $activeQuestion->evaluationState(),
             ] : null,
             'progress' => [
                 'percentage' => $interviewModel->progressPercentage(),
@@ -71,6 +83,16 @@ class InterviewConductController extends Controller
                 'sections' => $sections,
             ],
         ]);
+    }
+
+    /**
+     * The answer may not exist yet for a question that is still being asked.
+     */
+    private function answerIdFor(InterviewQuestion $question): ?int
+    {
+        $answer = $question->getRelationValue('answer');
+
+        return $answer instanceof Answer ? $answer->id : null;
     }
 
     private function sectionStatus(int $completed, int $total): string

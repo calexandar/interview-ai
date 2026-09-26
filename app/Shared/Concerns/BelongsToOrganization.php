@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 trait BelongsToOrganization
 {
+    /**
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
+     */
     public function scopeForOrganization(Builder $query, int $organizationId): Builder
     {
         return $query->where('organization_id', $organizationId);

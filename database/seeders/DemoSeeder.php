@@ -19,9 +19,11 @@ use App\Shared\Enums\InterviewStatus;
 use App\Shared\Enums\InterviewType;
 use App\Shared\Enums\PositionLevel;
 use App\Shared\Enums\QuestionDifficulty;
+use App\Shared\Enums\QuestionSource;
 use App\Shared\Enums\QuestionStatus;
 use App\Shared\Enums\QuestionType;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as SupportCollection;
@@ -221,6 +223,8 @@ class DemoSeeder extends Seeder
     }
 
     /**
+     * @param  Collection<int, Position>  $positions
+     * @param  Collection<int, Candidate>  $candidates
      * @param  Collection<int, Skill>  $skills
      * @param  Collection<int, Question>  $questions
      */
@@ -231,16 +235,14 @@ class DemoSeeder extends Seeder
         Collection $skills,
         Collection $questions,
     ): void {
-        /** @var Position $seniorPosition */
-        $seniorPosition = $positions->firstWhere('title', 'Senior Laravel Developer');
-        /** @var Position $midPosition */
-        $midPosition = $positions->firstWhere('title', 'Mid-Level PHP Developer');
+        $seniorPosition = $this->seeded($positions, 'title', 'Senior Laravel Developer');
+        $midPosition = $this->seeded($positions, 'title', 'Mid-Level PHP Developer');
 
         $this->createCompletedInterview(
             $organization,
             $seniorPosition,
             /** @var Candidate */
-            $candidates->firstWhere('name', 'John Smith'),
+            $this->seeded($candidates, 'name', 'John Smith'),
             $questions,
             8.4,
             AssessmentRecommendation::StrongHire,
@@ -251,7 +253,7 @@ class DemoSeeder extends Seeder
             $organization,
             $seniorPosition,
             /** @var Candidate */
-            $candidates->firstWhere('name', 'Sarah Johnson'),
+            $this->seeded($candidates, 'name', 'Sarah Johnson'),
             $questions,
             7.2,
             AssessmentRecommendation::Hire,
@@ -262,7 +264,7 @@ class DemoSeeder extends Seeder
             $organization,
             $midPosition,
             /** @var Candidate */
-            $candidates->firstWhere('name', 'Michael Chen'),
+            $this->seeded($candidates, 'name', 'Michael Chen'),
             $questions,
             5.8,
             AssessmentRecommendation::Mixed,
@@ -273,7 +275,7 @@ class DemoSeeder extends Seeder
             $organization,
             $seniorPosition,
             /** @var Candidate */
-            $candidates->firstWhere('name', 'Emily Rodriguez'),
+            $this->seeded($candidates, 'name', 'Emily Rodriguez'),
             $questions,
             4.2,
             AssessmentRecommendation::NoHire,
@@ -324,6 +326,8 @@ class DemoSeeder extends Seeder
                 'skill_id' => $skill->id,
                 'difficulty' => $question->difficulty,
                 'question_text' => $question->question,
+                'source' => QuestionSource::QuestionBank,
+                'evaluation_criteria' => $question->expected_topics,
                 'status' => QuestionStatus::Answered,
                 'asked_at' => (clone $startedAt)->addMinutes($questionIndex * 4),
                 'answered_at' => (clone $startedAt)->addMinutes($questionIndex * 4 + rand(2, 5)),
@@ -388,6 +392,8 @@ class DemoSeeder extends Seeder
     }
 
     /**
+     * @param  Collection<int, Position>  $positions
+     * @param  Collection<int, Candidate>  $candidates
      * @param  Collection<int, Skill>  $skills
      * @param  Collection<int, Question>  $questions
      */
@@ -398,10 +404,8 @@ class DemoSeeder extends Seeder
         Collection $skills,
         Collection $questions,
     ): void {
-        /** @var Position $position */
-        $position = $positions->firstWhere('title', 'Full Stack Developer');
-        /** @var Candidate $candidate */
-        $candidate = $candidates->firstWhere('name', 'David Kim');
+        $position = $this->seeded($positions, 'title', 'Full Stack Developer');
+        $candidate = $this->seeded($candidates, 'name', 'David Kim');
 
         $startedAt = Carbon::now()->subMinutes(15);
 
@@ -429,6 +433,8 @@ class DemoSeeder extends Seeder
                 'skill_id' => $question->skill_id,
                 'difficulty' => $question->difficulty,
                 'question_text' => $question->question,
+                'source' => QuestionSource::QuestionBank,
+                'evaluation_criteria' => $question->expected_topics,
                 'status' => $isAnswered ? QuestionStatus::Answered : QuestionStatus::Asking,
                 'asked_at' => (clone $startedAt)->addMinutes($index * 5),
                 'answered_at' => $isAnswered ? (clone $startedAt)->addMinutes($index * 5 + 3) : null,
@@ -467,17 +473,16 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @param  Collection<int, Skill>  $skills
+     * @param  Collection<int, Position>  $positions
+     * @param  Collection<int, Candidate>  $candidates
      */
     private function createScheduledInterviews(
         Organization $organization,
         Collection $positions,
         Collection $candidates,
     ): void {
-        /** @var Position $position */
-        $position = $positions->firstWhere('title', 'Senior Laravel Developer');
-        /** @var Candidate $candidate */
-        $candidate = $candidates->firstWhere('name', 'Jessica Patel');
+        $position = $this->seeded($positions, 'title', 'Senior Laravel Developer');
+        $candidate = $this->seeded($candidates, 'name', 'Jessica Patel');
 
         Interview::create([
             'organization_id' => $organization->id,
@@ -489,10 +494,9 @@ class DemoSeeder extends Seeder
             'question_index' => 0,
         ]);
 
-        /** @var Position $position2 */
-        $position2 = $positions->firstWhere('title', 'Mid-Level PHP Developer');
+        $position2 = $this->seeded($positions, 'title', 'Mid-Level PHP Developer');
         /** @var Candidate $candidate2 */
-        $candidate2 = $candidates->firstWhere('name', 'James Wilson');
+        $candidate2 = $this->seeded($candidates, 'name', 'James Wilson');
 
         Interview::create([
             'organization_id' => $organization->id,
@@ -504,10 +508,9 @@ class DemoSeeder extends Seeder
             'question_index' => 0,
         ]);
 
-        /** @var Position $position3 */
-        $position3 = $positions->firstWhere('title', 'Full Stack Developer');
+        $position3 = $this->seeded($positions, 'title', 'Full Stack Developer');
         /** @var Candidate $candidate3 */
-        $candidate3 = $candidates->firstWhere('name', 'Lisa Thompson');
+        $candidate3 = $this->seeded($candidates, 'name', 'Lisa Thompson');
 
         Interview::create([
             'organization_id' => $organization->id,
@@ -641,5 +644,23 @@ class DemoSeeder extends Seeder
             AssessmentRecommendation::NoHire => 'The candidate did not demonstrate sufficient technical skills for this role. There were significant gaps in fundamental concepts and practical experience. While they showed some potential, the gaps are too wide for the expected level.',
             AssessmentRecommendation::StrongNoHire => 'The candidate showed minimal technical competence across the assessed areas. Their answers indicated limited practical experience and gaps in fundamental concepts. Not recommended for this role.',
         };
+    }
+
+    /**
+     * Resolves a seeded row by attribute, failing loudly when it is missing so
+     * a renamed fixture surfaces here instead of as a null further down.
+     *
+     * @template TModel of Model
+     *
+     * @param  Collection<int, TModel>  $rows
+     * @return TModel
+     */
+    private function seeded(Collection $rows, string $key, string $value): Model
+    {
+        $row = $rows->firstWhere($key, $value);
+
+        abort_if($row === null, 500, "Demo data is missing a {$key} of {$value}.");
+
+        return $row;
     }
 }

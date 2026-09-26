@@ -9,6 +9,7 @@ use App\Shared\Enums\InterviewStatus;
 use App\Shared\Enums\QuestionStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class GetActiveInterviewDashboardHandler
 {
@@ -24,16 +25,16 @@ class GetActiveInterviewDashboardHandler
      *         id: int,
      *         candidateName: string,
      *         jobTitle: string,
-     *         status: string,
+     *         status: 'cancelled'|'completed'|'draft'|'expired'|'in_progress'|'paused'|'scheduled',
      *         startedAt: string,
      *         durationSeconds: int,
      *         remainingSeconds: int,
      *     }|null,
      *     currentQuestion: array{text: string, state: string}|null,
-     *     progress: array{percentage: int, sections: list<array{name: string, completed: int, total: int, status: string}>},
-     *     skills: list<array{skill: string, score: int}>,
+     *     progress: array{percentage: int, sections: array<int, array{name: string, completed: int, total: int, status: string}>},
+     *     skills: array<int, array{skill: string, score: int}>,
      *     statistics: array{interviews: array{value: int, trend: array{value: int, direction: string}|null}, completed: array{value: int, trend: array{value: int, direction: string}|null}, inProgress: array{value: int, trend: array{value: int, direction: string}|null}, averageScorePercent: array{value: int|null, trend: null}},
-     *     interviewsOverTime: list<array{label: string, count: int}>,
+     *     interviewsOverTime: array<int, array{label: string, count: int}>,
      * }
      */
     public function handle(GetActiveInterviewDashboard $command): array
@@ -79,7 +80,7 @@ class GetActiveInterviewDashboardHandler
     }
 
     /**
-     * @return array{id: int, candidateName: string, jobTitle: string, status: string, startedAt: string, durationSeconds: int, remainingSeconds: int}|null
+     * @return array{id: int, candidateName: string, jobTitle: string, status: 'cancelled'|'completed'|'draft'|'expired'|'in_progress'|'paused'|'scheduled', startedAt: string, durationSeconds: int, remainingSeconds: int}|null
      */
     private function describeInterview(?Interview $interview): ?array
     {
@@ -87,14 +88,14 @@ class GetActiveInterviewDashboardHandler
             return null;
         }
 
-        $durationSeconds = (($interview->position?->duration_minutes ?? 0) * 60);
+        $durationSeconds = $interview->position->duration_minutes * 60;
         $elapsedSeconds = (int) $interview->started_at->diffInSeconds(now());
         $remainingSeconds = max(0, $durationSeconds - $elapsedSeconds);
 
         return [
             'id' => $interview->id,
             'candidateName' => $interview->candidate->name,
-            'jobTitle' => $interview->position?->title ?? '',
+            'jobTitle' => $interview->position->title,
             'status' => $interview->status->value,
             'startedAt' => $interview->started_at->toIso8601String(),
             'durationSeconds' => $durationSeconds,
@@ -132,7 +133,7 @@ class GetActiveInterviewDashboardHandler
     }
 
     /**
-     * @return array{percentage: int, sections: list<array{name: string, completed: int, total: int, status: string}>}
+     * @return array{percentage: int, sections: array<int, array{name: string, completed: int, total: int, status: string}>}
      */
     private function getProgress(?Interview $interview): array
     {
@@ -144,7 +145,8 @@ class GetActiveInterviewDashboardHandler
             ? (int) floor(($interview->question_index / $interview->total_questions) * 100)
             : 0;
 
-        $sections = $interview->interviewQuestions()
+        $sections = DB::table('interview_questions')
+            ->where('interview_id', $interview->id)
             ->leftJoin('skills', 'skills.id', '=', 'interview_questions.skill_id')
             ->selectRaw("COALESCE(skills.name, 'General') as section_name")
             ->selectRaw('COUNT(*) as total')
@@ -152,7 +154,7 @@ class GetActiveInterviewDashboardHandler
             ->groupBy('section_name')
             ->orderBy('section_name')
             ->get()
-            ->map(fn ($row): array => [
+            ->map(fn (object $row): array => [
                 'name' => (string) $row->section_name,
                 'completed' => (int) $row->completed,
                 'total' => (int) $row->total,
@@ -168,7 +170,7 @@ class GetActiveInterviewDashboardHandler
     }
 
     /**
-     * @return list<array{skill: string, score: int}>
+     * @return array<int, array{skill: string, score: int}>
      */
     private function getSkills(?Interview $interview): array
     {
@@ -176,11 +178,12 @@ class GetActiveInterviewDashboardHandler
             return [];
         }
 
-        return $interview->skillAssessments()
+        return DB::table('skill_assessments')
+            ->where('interview_id', $interview->id)
             ->join('skills', 'skills.id', '=', 'skill_assessments.skill_id')
             ->orderBy('skills.name')
             ->get(['skills.name as skill_name', 'skill_assessments.score'])
-            ->map(fn ($row): array => [
+            ->map(fn (object $row): array => [
                 'skill' => (string) $row->skill_name,
                 'score' => (int) round(((float) $row->score) * 10),
             ])
@@ -208,7 +211,7 @@ class GetActiveInterviewDashboardHandler
     /**
      * Interview counts for the last seven days, oldest first.
      *
-     * @return list<array{label: string, count: int}>
+     * @return array<int, array{label: string, count: int}>
      */
     private function getInterviewsOverTime(int $orgId): array
     {

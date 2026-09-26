@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Shared\Enums\QuestionDifficulty;
 use App\Shared\Enums\QuestionType;
+use Database\Factories\QuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,7 @@ use Illuminate\Support\Carbon;
  * @property QuestionType $type
  * @property QuestionDifficulty $difficulty
  * @property string $question
- * @property array|null $expected_topics
+ * @property list<string>|null $expected_topics
  * @property string|null $evaluation_guidance
  * @property bool $is_active
  * @property Carbon|null $created_at
@@ -24,6 +25,7 @@ use Illuminate\Support\Carbon;
  */
 class Question extends Model
 {
+    /** @use HasFactory<QuestionFactory> */
     use HasFactory;
 
     protected $fillable = ['skill_id', 'type', 'difficulty', 'question', 'expected_topics', 'evaluation_guidance', 'is_active'];
@@ -38,11 +40,17 @@ class Question extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Skill, $this>
+     */
     public function skill(): BelongsTo
     {
         return $this->belongsTo(Skill::class);
     }
 
+    /**
+     * @return HasMany<InterviewQuestion, $this>
+     */
     public function interviewQuestions(): HasMany
     {
         return $this->hasMany(InterviewQuestion::class);

@@ -7,6 +7,7 @@ use App\Models\InterviewQuestion;
 use App\Models\Question;
 use App\Models\Skill;
 use App\Shared\Enums\QuestionDifficulty;
+use App\Shared\Enums\QuestionSource;
 use App\Shared\Enums\QuestionStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -27,7 +28,25 @@ class InterviewQuestionFactory extends Factory
             'difficulty' => QuestionDifficulty::Medium,
             'question_text' => fake()->sentence(),
             'status' => QuestionStatus::Pending,
+            'source' => QuestionSource::QuestionBank,
+            'evaluation_criteria' => null,
+            'generation_metadata' => null,
         ];
+    }
+
+    public function aiGenerated(): static
+    {
+        return $this->state(fn () => [
+            'question_id' => null,
+            'source' => QuestionSource::AI,
+            'evaluation_criteria' => ['profiling', 'caching'],
+            'generation_metadata' => [
+                'provider' => 'fake',
+                'model' => 'fake-model',
+                'latency_ms' => 12,
+                'total_tokens' => 320,
+            ],
+        ]);
     }
 
     public function asking(): static

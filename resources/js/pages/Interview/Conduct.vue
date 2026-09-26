@@ -13,15 +13,10 @@ import {
     next,
     pause,
     resume,
+    retryEvaluation as retryEvaluationRoute,
     skip,
 } from '@/routes/interviews';
-import type {
-    ConductCandidate,
-    ConductPageProps,
-    ConductPosition,
-    ConductProgress,
-    ConductQuestion,
-} from '@/types/interview';
+import type { ConductPageProps } from '@/types/interview';
 
 const props = defineProps<ConductPageProps>();
 
@@ -32,36 +27,147 @@ const answerForm = useForm({
 });
 
 const isSubmitting = ref(false);
+const isRetrying = ref(false);
 const answerText = ref('');
 
 const questionState = computed(() => {
-    if (!props.currentQuestion) return 'pending';
-    if (props.currentQuestion.status === 'answered') return 'answered';
-    if (props.currentQuestion.status === 'asking') return 'listening';
+    if (!props.currentQuestion) {
+        return 'pending';
+    }
+
+    if (props.currentQuestion.status === 'answered') {
+        return 'answered';
+    }
+
+    if (props.currentQuestion.status === 'asking') {
+        return 'listening';
+    }
+
     return 'pending';
 });
 
+/**
+ * The interviewer's line. While a question is being generated there is no
+ * current question yet, so the panel says it is thinking rather than showing a
+ * stale question.
+ */
+const interviewerMessage = computed(() =>
+    props.currentQuestion ? props.currentQuestion.text : null,
+);
+
+const isThinking = computed(() => !props.currentQuestion);
+
+/**
+ * Only an answer that exists, is not completed, and is in a state Laravel will
+ * accept a retry for can be retried. The server enforces all of this anyway;
+ * this only keeps the button honest.
+ */
+const canRetryEvaluation = computed(() => {
+    const question = props.currentQuestion;
+
+    if (!question?.answerId || isRetrying.value) {
+        return false;
+    }
+
+    return question.evaluationState !== 'completed';
+});
+
+/**
+ * Tells the candidate where their answer's review stands. Deliberately carries
+ * no score, confidence or rubric: Laravel never sends those to this page.
+ */
+const evaluationNotice = computed<{
+    message: string;
+    tone: string;
+} | null>(() => {
+    const question = props.currentQuestion;
+
+    if (!question) {
+        return null;
+    }
+
+    if (
+        question.status === 'answered' &&
+        question.evaluationState === 'failed'
+    ) {
+        return {
+            message:
+                'We could not review your last answer just now. Your answer was saved, and you can try again.',
+            tone: 'border-warning/30 bg-warning/5 text-warning',
+        };
+    }
+
+    if (
+        question.status === 'answered' &&
+        question.evaluationState === 'pending'
+    ) {
+        return {
+            message: 'Your answer was saved and is waiting to be reviewed.',
+            tone: 'border-border bg-muted/30 text-muted-foreground',
+        };
+    }
+
+    return null;
+});
+
 function submitAnswer(): void {
-    if (!props.currentQuestion || !answerText.value.trim()) return;
+    if (!props.currentQuestion || !answerText.value.trim()) {
+        return;
+    }
 
     isSubmitting.value = true;
 
     answerForm.question_id = props.currentQuestion.id;
     answerForm.content = answerText.value.trim();
 
-    answerForm.post(answer({ interview: props.interview.id }), {
+    // A failed evaluation flashes evaluation_failed and the server has left us
+    // on this question so the candidate can retry. Advancing in that case would
+    // move past an answer that was never reviewed.
+    let evaluationFailed = false;
+
+    answerForm.post(answer.url({ interview: props.interview.id }), {
+        onFlash: (flash) => {
+            evaluationFailed = flash.evaluation_failed === true;
+        },
         onFinish: () => {
             isSubmitting.value = false;
             answerText.value = '';
         },
         onSuccess: () => {
+            if (evaluationFailed) {
+                return;
+            }
+
             router.post(next({ interview: props.interview.id }));
         },
     });
 }
 
+function retryEvaluation(): void {
+    const question = props.currentQuestion;
+
+    if (!question?.answerId) {
+        return;
+    }
+
+    isRetrying.value = true;
+
+    router.post(
+        retryEvaluationRoute({ interview: props.interview.id }),
+        { answer_id: question.answerId },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isRetrying.value = false;
+            },
+        },
+    );
+}
+
 function skipQuestion(): void {
-    if (!props.currentQuestion) return;
+    if (!props.currentQuestion) {
+        return;
+    }
 
     router.post(
         skip({ interview: props.interview.id }),
@@ -117,12 +223,18 @@ function resumeInterview(): void {
         </div>
 
         <section
-            class="rounded-xl border border-border bg-[#F9F7FF] p-4 dark:border-border/60 dark:bg-card/40 md:p-6"
+            class="rounded-xl border border-border bg-[#F9F7FF] p-4 md:p-6 dark:border-border/60 dark:bg-card/40"
             aria-label="Active AI interview"
         >
             <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
                 <div class="flex min-w-0 flex-col gap-6">
-                    <AiInterviewerChat />
+                    <AiInterviewerChat
+                        :agent-status="isThinking ? 'thinking' : 'online'"
+                        :candidate-name="candidate.name"
+                        :job-title="position.title"
+                        :message="interviewerMessage"
+                        :thinking="isThinking"
+                    />
 
                     <QuestionCard
                         v-if="currentQuestion"
@@ -131,7 +243,40 @@ function resumeInterview(): void {
                     />
 
                     <div
-                        v-if="currentQuestion && interview.status === 'in_progress'"
+                        v-if="evaluationNotice"
+                        class="rounded-lg border p-4"
+                        :class="evaluationNotice.tone"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-3"
+                        >
+                            <p class="text-sm">
+                                {{ evaluationNotice.message }}
+                            </p>
+
+                            <Button
+                                v-if="canRetryEvaluation"
+                                variant="outline"
+                                size="sm"
+                                :disabled="isRetrying"
+                                @click="retryEvaluation"
+                            >
+                                <Spinner
+                                    v-if="isRetrying"
+                                    class="mr-2 size-4"
+                                />
+                                {{ isRetrying ? 'Retrying...' : 'Try again' }}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="
+                            currentQuestion &&
+                            interview.status === 'in_progress'
+                        "
                         class="flex flex-col gap-3"
                     >
                         <textarea
@@ -145,8 +290,15 @@ function resumeInterview(): void {
                                 :disabled="!answerText.trim() || isSubmitting"
                                 @click="submitAnswer"
                             >
-                                <Spinner v-if="isSubmitting" class="size-4 mr-2" />
-                                {{ isSubmitting ? 'Submitting...' : 'Submit Answer' }}
+                                <Spinner
+                                    v-if="isSubmitting"
+                                    class="mr-2 size-4"
+                                />
+                                {{
+                                    isSubmitting
+                                        ? 'Submitting...'
+                                        : 'Submit Answer'
+                                }}
                             </Button>
                             <Button
                                 variant="ghost"

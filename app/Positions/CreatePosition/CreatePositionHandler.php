@@ -22,9 +22,14 @@ class CreatePositionHandler
             ]);
 
             if ($command->skillIds) {
-                $skills = Skill::whereIn('id', $command->skillIds)
-                    ->where('organization_id', $command->organizationId)
-                    ->get();
+                // Skills are a shared global catalogue, not tenant-owned, so
+                // they are looked up by id only. Every requested id must
+                // resolve before anything is attached.
+                $skills = Skill::whereIn('id', $command->skillIds)->get();
+
+                if ($skills->count() !== count(array_unique($command->skillIds))) {
+                    abort(422, 'One or more of the selected skills do not exist.');
+                }
 
                 foreach ($skills as $skill) {
                     $position->skills()->attach($skill->id, [

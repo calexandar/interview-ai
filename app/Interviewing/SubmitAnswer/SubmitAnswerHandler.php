@@ -13,37 +13,48 @@ class SubmitAnswerHandler
 {
     public function handle(SubmitAnswer $command): Answer
     {
+        $interview = Interview::where('id', $command->interviewId)
+            ->where('organization_id', $command->organizationId)
+            ->firstOrFail();
+
+        // The interview is loaded once up front only to report expiry. Anything
+        // that writes has to happen outside the transaction below, because the
+        // abort that follows would otherwise roll the expiry back and leave a
+        // lapsed interview looking active.
+        if ($interview->hasExpired()) {
+            $interview->update(['status' => InterviewStatus::Expired]);
+
+            abort(422, 'This interview has expired.');
+        }
+
         return DB::transaction(function () use ($command) {
             $interview = Interview::where('id', $command->interviewId)
                 ->where('organization_id', $command->organizationId)
+                ->lockForUpdate()
                 ->firstOrFail();
 
             if (! $interview->isActive()) {
                 abort(422, 'This interview is not active.');
             }
 
-            if ($interview->hasExpired()) {
-                $interview->update(['status' => InterviewStatus::Expired]);
-                abort(422, 'This interview has expired.');
-            }
-
             $question = InterviewQuestion::where('id', $command->questionId)
                 ->where('interview_id', $interview->id)
                 ->firstOrFail();
 
-            if (! in_array($question->status, [QuestionStatus::Asking, QuestionStatus::Answering])) {
+            if (! in_array($question->status, [QuestionStatus::Asking, QuestionStatus::Answering], true)) {
                 abort(422, 'This question is not currently answerable.');
             }
 
-            $existingAnswer = Answer::where('interview_question_id', $question->id)->first();
-            if ($existingAnswer !== null) {
+            if (Answer::where('interview_question_id', $question->id)->exists()) {
                 abort(422, 'An answer has already been submitted for this question.');
             }
 
+            // The candidate belongs to the interview, never to the request body.
             $answer = Answer::create([
                 'interview_question_id' => $question->id,
-                'candidate_id' => $command->candidateId,
+                'candidate_id' => $interview->candidate_id,
                 'content' => $command->content,
+                'duration_seconds' => $command->durationSeconds,
                 'submitted_at' => now(),
             ]);
 

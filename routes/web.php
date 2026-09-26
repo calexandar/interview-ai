@@ -5,9 +5,11 @@ use App\Dashboard\DashboardController;
 use App\Interviewing\Conduct\InterviewConductController;
 use App\Interviewing\CreateInterview\InterviewController;
 use App\Interviewing\EndInterview\EndInterviewController;
+use App\Interviewing\GenerateQuestion\GenerateQuestionController;
 use App\Interviewing\MoveToNextQuestion\MoveToNextQuestionController;
 use App\Interviewing\PauseInterview\PauseInterviewController;
 use App\Interviewing\ResumeInterview\ResumeInterviewController;
+use App\Interviewing\RetryAnswerEvaluation\RetryAnswerEvaluationController;
 use App\Interviewing\SkipQuestion\SkipQuestionController;
 use App\Interviewing\StartInterview\StartInterviewController;
 use App\Interviewing\SubmitAnswer\SubmitAnswerController;
@@ -39,6 +41,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('interviews.resume');
     Route::post('interviews/{interview}/end', EndInterviewController::class)
         ->name('interviews.end');
+    Route::post('interviews/{interview}/questions/generate', GenerateQuestionController::class)
+        ->name('interviews.questions.generate');
+    Route::post('interviews/{interview}/retry-evaluation', RetryAnswerEvaluationController::class)
+        ->name('interviews.retry-evaluation');
 });
 
 require __DIR__.'/settings.php';

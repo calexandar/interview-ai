@@ -7,6 +7,9 @@ use App\Shared\Enums\PositionStatus;
 
 readonly class CreatePosition
 {
+    /**
+     * @param  array<int, int>|null  $skillIds
+     */
     public function __construct(
         public int $organizationId,
         public string $title,
