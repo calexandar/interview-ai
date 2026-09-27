@@ -15,6 +15,7 @@ import {
     resume,
     retryEvaluation as retryEvaluationRoute,
     skip,
+    start,
 } from '@/routes/interviews';
 import type { ConductPageProps } from '@/types/interview';
 
@@ -28,6 +29,7 @@ const answerForm = useForm({
 
 const isSubmitting = ref(false);
 const isRetrying = ref(false);
+const isStarting = ref(false);
 const answerText = ref('');
 
 const questionState = computed(() => {
@@ -55,7 +57,39 @@ const interviewerMessage = computed(() =>
     props.currentQuestion ? props.currentQuestion.text : null,
 );
 
-const isThinking = computed(() => !props.currentQuestion);
+/**
+ * Only a running interview can be mid-generation. Before it starts there is
+ * nothing to wait for, so the panel must not claim to be thinking.
+ */
+const isThinking = computed(
+    () =>
+        props.interview.status === 'in_progress' &&
+        props.currentQuestion === null,
+);
+
+/**
+ * Starting is idempotent server-side, but the button reflects the real state so
+ * it disappears the moment the interview is running.
+ */
+const canStart = computed(() => props.interview.canStart && !isStarting.value);
+
+function startInterview(): void {
+    if (!canStart.value) {
+        return;
+    }
+
+    isStarting.value = true;
+
+    router.post(
+        start({ interview: props.interview.id }),
+        {},
+        {
+            onFinish: () => {
+                isStarting.value = false;
+            },
+        },
+    );
+}
 
 /**
  * Only an answer that exists, is not completed, and is in a state Laravel will
@@ -190,7 +224,11 @@ function resumeInterview(): void {
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-foreground">
-                    Interview in Progress
+                    {{
+                        interview.canStart
+                            ? 'Interview Ready'
+                            : 'Interview in Progress'
+                    }}
                 </h1>
                 <p class="mt-1 text-sm text-muted-foreground">
                     {{ candidate.name }} — {{ position.title }}
@@ -218,7 +256,14 @@ function resumeInterview(): void {
                 >
                     Resume
                 </Button>
-                <EndInterviewDialog :interview-id="interview.id" />
+                <!-- Ending is only meaningful once the clock is running. -->
+                <EndInterviewDialog
+                    v-if="
+                        interview.status === 'in_progress' ||
+                        interview.status === 'paused'
+                    "
+                    :interview-id="interview.id"
+                />
             </div>
         </div>
 
@@ -241,6 +286,36 @@ function resumeInterview(): void {
                         :question="currentQuestion.text"
                         :initial-state="questionState"
                     />
+
+                    <div
+                        v-if="interview.canStart"
+                        class="rounded-lg border border-border bg-card p-6 text-center"
+                    >
+                        <h2 class="text-base font-semibold text-foreground">
+                            Ready to begin
+                        </h2>
+                        <p
+                            class="mx-auto mt-2 max-w-md text-sm text-muted-foreground"
+                        >
+                            Starting sets the clock running and asks the AI
+                            interviewer for the first question. If the AI is
+                            unavailable, a question from the bank is used
+                            instead.
+                        </p>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            {{ interview.totalQuestions }} questions ·
+                            {{ Math.round(interview.durationSeconds / 60) }}
+                            minutes
+                        </p>
+                        <Button
+                            class="mt-4"
+                            :disabled="!canStart"
+                            @click="startInterview"
+                        >
+                            <Spinner v-if="isStarting" class="mr-2 size-4" />
+                            {{ isStarting ? 'Starting...' : 'Start Interview' }}
+                        </Button>
+                    </div>
 
                     <div
                         v-if="evaluationNotice"

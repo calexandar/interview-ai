@@ -105,6 +105,7 @@ export interface ConductInterview {
     remainingSeconds: number;
     questionIndex: number;
     totalQuestions: number;
+    canStart: boolean;
 }
 
 export interface ConductCandidate {

@@ -54,6 +54,9 @@ class InterviewConductController extends Controller
                 'remainingSeconds' => $interviewModel->remainingSeconds(),
                 'questionIndex' => $interviewModel->question_index,
                 'totalQuestions' => $interviewModel->total_questions,
+                // Derived server-side so the page never has to re-implement the
+                // rule for which statuses may be started.
+                'canStart' => $interviewModel->canBeStarted(),
             ],
             'candidate' => [
                 'id' => $interviewModel->candidate->id,
