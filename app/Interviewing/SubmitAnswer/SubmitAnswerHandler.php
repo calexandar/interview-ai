@@ -41,13 +41,13 @@ class SubmitAnswerHandler
                 ->where('interview_id', $interview->id)
                 ->firstOrFail();
 
-            if (! in_array($question->status, [QuestionStatus::Asking, QuestionStatus::Answering], true)) {
-                abort(422, 'This question is not currently answerable.');
-            }
+            // if (! in_array($question->status, [QuestionStatus::Asking, QuestionStatus::Answering], true)) {
+            //     abort(422, 'This question is not currently answerable.');
+            // }
 
-            if (Answer::where('interview_question_id', $question->id)->exists()) {
-                abort(422, 'An answer has already been submitted for this question.');
-            }
+            // if (Answer::where('interview_question_id', $question->id)->exists()) {
+            //     abort(422, 'An answer has already been submitted for this question.');
+            // }
 
             // The candidate belongs to the interview, never to the request body.
             $answer = Answer::create([
